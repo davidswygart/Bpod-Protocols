@@ -33,6 +33,27 @@ set(sipperPump, 'RequestToSend', 'off');
 %Open pump data stream
 fopen(sipperPump);
 
+%% Obtain information from the user
+dlgtitle = 'Set Calibration Parameters';
+prompt = {...
+    'Alcohol Concentration (Percent):',...
+    'Drop Volume (uL):',...
+    'Animal Weight (Grams):',...
+    'Liquid Density (g/mL):',...
+    };
+definput = {... % default values
+    '20',... % alcohol concentration
+    '4',... % drop volume
+    '',... % pump volume
+    '',... % animal weight
+    '0.97',... % liquid density
+    };
+dims = [1 60];
+answer = inputdlg(prompt,dlgtitle,dims,definput);
+alcCon = str2double(answer{1});
+dropVol = str2double(answer{2});
+animWeight = str2double(answer{3});
+liqDensity = str2double(answer{4});
 
 %% Experiment settings
 % Obtain information from the user
@@ -90,6 +111,9 @@ disp(' ')
 disp(' ')
 input('The protocol is ready to run. Press any key when you are ready to start the protocol.','s');
 
+
+%%
+totalTrials = 0;
 %% Experiment Stage 1: Baseline
 ticBaseline = tic();
 while (toc(ticBaseline)/60 < timeBaseline)
@@ -114,6 +138,11 @@ while (toc(ticBaseline)/60 < timeBaseline)
    SendStateMatrix(sma); % Send state machine to the Bpod state machine device
    RawEvents = RunStateMatrix; % Run the trial and return events
 
+   totalTrials = totalTrials + 1;
+  BpodSystem.Data = AddTrialEvents(BpodSystem.Data,RawEvents); % Adds raw events to a human-readable data struct
+  BpodSystem.Data.TrialSettings(totalTrials) = S; % Adds the settings used for the current trial to the Data struct (to be saved after the trial ends)
+  SaveBpodSessionData; % Saves the field BpodSystem.Data to the current data file
+
    %--- This final block of code is necessary for the Bpod console's pause and stop buttons to work
     HandlePauseCondition; % Checks to see if the protocol is paused. If so, waits until user resumes.
     if BpodSystem.Status.BeingUsed == 0
@@ -134,6 +163,10 @@ sma = AddState(sma, 'Name', 'MicroInject',...
     'OutputActions', {'SoftCode', 3});
 SendStateMatrix(sma); % Send state machine to the Bpod state machine device
 RawEvents = RunStateMatrix; % Run the trial and return events
+totalTrials = totalTrials + 1;
+ BpodSystem.Data = AddTrialEvents(BpodSystem.Data,RawEvents); % Adds raw events to a human-readable data struct
+  BpodSystem.Data.TrialSettings(totalTrials) = S; % Adds the settings used for the current trial to the Data struct (to be saved after the trial ends)
+  SaveBpodSessionData; % Saves the field BpodSystem.Data to the current data file
 
 
 while (toc(ticMicroinjection)/60 < timeMicroinjection)
@@ -157,6 +190,10 @@ while (toc(ticMicroinjection)/60 < timeMicroinjection)
 
    SendStateMatrix(sma); % Send state machine to the Bpod state machine device
    RawEvents = RunStateMatrix; % Run the trial and return events
+   totalTrials = totalTrials + 1;
+ BpodSystem.Data = AddTrialEvents(BpodSystem.Data,RawEvents); % Adds raw events to a human-readable data struct
+  BpodSystem.Data.TrialSettings(totalTrials) = S; % Adds the settings used for the current trial to the Data struct (to be saved after the trial ends)
+  SaveBpodSessionData; % Saves the field BpodSystem.Data to the current data file
 
    %--- This final block of code is necessary for the Bpod console's pause and stop buttons to work
     HandlePauseCondition; % Checks to see if the protocol is paused. If so, waits until user resumes.
@@ -190,6 +227,10 @@ while (toc(ticPostInjection)/60 < timePostInjection)
 
    SendStateMatrix(sma); % Send state machine to the Bpod state machine device
    RawEvents = RunStateMatrix; % Run the trial and return events
+   totalTrials = totalTrials + 1;
+     BpodSystem.Data = AddTrialEvents(BpodSystem.Data,RawEvents); % Adds raw events to a human-readable data struct
+  BpodSystem.Data.TrialSettings(totalTrials) = S; % Adds the settings used for the current trial to the Data struct (to be saved after the trial ends)
+  SaveBpodSessionData; % Saves the field BpodSystem.Data to the current data file
 
    %--- This final block of code is necessary for the Bpod console's pause and stop buttons to work
     HandlePauseCondition; % Checks to see if the protocol is paused. If so, waits until user resumes.
@@ -219,7 +260,7 @@ while (toc(ticSipper)/60 < timeSipper)
         'Timer', PretrialDelayTime,...
         'StateChangeConditions', {'Tup', 'OpenFluidValve'},...
         'OutputActions', {'BNC1',255});
-        %TODO: What is PWM2??  %'OutputActions', {'PWM2',255,'BNC1',255});
+        %TODO: What is PWM2 - IR light??  %'OutputActions', {'PWM2',255,'BNC1',255});
 
     % State 2
     % - Open the valve to deliver fluid
@@ -246,6 +287,10 @@ while (toc(ticSipper)/60 < timeSipper)
 
    SendStateMatrix(sma); % Send state machine to the Bpod state machine device
    RawEvents = RunStateMatrix; % Run the trial and return events
+   totalTrials = totalTrials + 1;
+     BpodSystem.Data = AddTrialEvents(BpodSystem.Data,RawEvents); % Adds raw events to a human-readable data struct
+  BpodSystem.Data.TrialSettings(totalTrials) = S; % Adds the settings used for the current trial to the Data struct (to be saved after the trial ends)
+  SaveBpodSessionData; % Saves the field BpodSystem.Data to the current data file
 
    %--- This final block of code is necessary for the Bpod console's pause and stop buttons to work
     HandlePauseCondition; % Checks to see if the protocol is paused. If so, waits until user resumes.
@@ -279,6 +324,10 @@ while (toc(ticTail)/60 < timeTail)
 
    SendStateMatrix(sma); % Send state machine to the Bpod state machine device
    RawEvents = RunStateMatrix; % Run the trial and return events
+   totalTrials = totalTrials + 1;
+  BpodSystem.Data = AddTrialEvents(BpodSystem.Data,RawEvents); % Adds raw events to a human-readable data struct
+  BpodSystem.Data.TrialSettings(totalTrials) = S; % Adds the settings used for the current trial to the Data struct (to be saved after the trial ends)
+  SaveBpodSessionData; % Saves the field BpodSystem.Data to the current data file
 
    %--- This final block of code is necessary for the Bpod console's pause and stop buttons to work
     HandlePauseCondition; % Checks to see if the protocol is paused. If so, waits until user resumes.
@@ -293,42 +342,37 @@ end
 fclose(microInjectionPump);
 fclose(sipperPump);
 
-% %% Stop video and record consumption volume
-% % Tell the user to stop the video recording
-% f = msgbox('Stop the video recording on the video recording computer!');
-% uiwait(f)
-% 
-% % Give the user the option to retake the sipper alignment photo
-% f = msgbox('If you wish to retake the sipper alignment photo, do so now on the video recording computer.');
-% uiwait(f)
-% 
-% % Tell the user to remove the animal from the rig.
-% f = msgbox('Remove the animal from the rig.');
-% uiwait(f)
-% 
-% % Ask the user to input the paper towel weights
-% prompt = {'Dry Paper Towel Weight (g):','Wet Paper Towel Weight (g):'};
-% dlgtitle = 'Suction Reservoir Paper Towel Weights';
-% definput = {'',''};
-% dims = [1 60];
-% answer = inputdlg(prompt,dlgtitle,dims,definput);
-% dryWeight = str2double(answer{1});
-% wetWeight = str2double(answer{2});
-% 
-% % Calculate various measurements of consumption and loss
-% nDropsDispensed = 1;%TODO: calculate nDropsDispensed
-% volDispensed = nDropsDispensed*dropVol/1000; % Volume in mL dispensed assuming each drop was dropVol microliters
-% volCollected = (wetWeight - dryWeight)/S.liqDensity; % Volume in mL dispensed, but not consumed
-% 
-% mkdir([BpodSystem.Path.CurrentDataFile(1:(end - 4)),'AdditionalData']);
-% dataDir = [BpodSystem.Path.CurrentDataFile(1:(end - 4)),'AdditionalData',filesep];
-% save([dataDir,'fluidMeasurements.mat'],'volDispensed','volCollected')
-% 
-% % Display the estimates of the amount consumed
-% msgbox(['Consumption (Fluid Lost Method): ',num2str((volDispensed - volCollected)*0.789*(alcCon/100)/(animWeight/1000),4),' g/kg']);
-% 
+%% Stop video and record consumption volume
+% Tell the user to stop the video recording
+f = msgbox('Stop the video recording on the video recording computer!');
+uiwait(f)
 
+% Give the user the option to retake the sipper alignment photo
+f = msgbox('If you wish to retake the sipper alignment photo, do so now on the video recording computer.');
+uiwait(f)
 
+% Tell the user to remove the animal from the rig.
+f = msgbox('Remove the animal from the rig.');
+uiwait(f)
+
+% Ask the user to input the paper towel weights
+prompt = {'Dry Paper Towel Weight (g):','Wet Paper Towel Weight (g):'};
+dlgtitle = 'Suction Reservoir Paper Towel Weights';
+definput = {'',''};
+dims = [1 60];
+answer = inputdlg(prompt,dlgtitle,dims,definput);
+dryWeight = str2double(answer{1});
+wetWeight = str2double(answer{2});
+
+% Calculate various measurements of consumption and loss
+volDispensed = nDropsDispensed*dropVol/1000; % Volume in mL dispensed assuming each drop was dropVol microliters
+volCollected = (wetWeight - dryWeight)/liqDensity; % Volume in mL dispensed, but not consumed
+
+mkdir([BpodSystem.Path.CurrentDataFile(1:(end - 4)),'AdditionalData']);
+dataDir = [BpodSystem.Path.CurrentDataFile(1:(end - 4)),'AdditionalData',filesep];
+save([dataDir,'fluidMeasurements.mat'],'volDispensed','volCollected')
+
+% Display the estimates of the amount consumed
+msgbox(['Consumption (Fluid Lost Method): ',num2str((volDispensed - volCollected)*0.789*(alcCon/100)/(animWeight/1000),4),' g/kg']);
 disp('Protocol has ended. Please press stop in the Bpod GUI.')
-
 end
