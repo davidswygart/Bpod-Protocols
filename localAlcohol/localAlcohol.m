@@ -1,24 +1,29 @@
 function localAlcohol
     global BpodSystem
+    global isEphysRig
+    isEphysRig = true;
     S = struct;
     S.SoftCodeHandlerFunctionName = 'localAlcoholSoftCodeHandler';
     BpodSystem.SoftCodeHandlerFunction = S.SoftCodeHandlerFunctionName;
     
-    %% setup pumps
-    %Initialize microinjection pump on COM port
-    global microInjectionPump
-    S.COM_microInjectionPump = 'COM9';
-    microInjectionPump = serial(S.COM_microInjectionPump);
-    %Set all values in order to read values correctly
-    set(microInjectionPump, 'Timeout', 60);
-    set(microInjectionPump,'BaudRate', 9600);
-    set(microInjectionPump, 'Parity', 'none');
-    set(microInjectionPump, 'DataBits', 8);
-    set(microInjectionPump, 'StopBits', 1);
-    set(microInjectionPump, 'RequestToSend', 'off');
-    %Open pump data stream
-    fopen(microInjectionPump);
     
+    %% setup pumps
+    %Initialize microinjection pump on COM port (only for ephys rig)
+    global microInjectionPump
+    if isEphysRig
+        S.COM_microInjectionPump = 'COM9';
+        microInjectionPump = serial(S.COM_microInjectionPump);
+        %Set all values in order to read values correctly
+        set(microInjectionPump, 'Timeout', 60);
+        set(microInjectionPump,'BaudRate', 9600);
+        set(microInjectionPump, 'Parity', 'none');
+        set(microInjectionPump, 'DataBits', 8);
+        set(microInjectionPump, 'StopBits', 1);
+        set(microInjectionPump, 'RequestToSend', 'off');
+        %Open pump data stream
+        fopen(microInjectionPump);
+    end
+
     %Initialize sipper pump on COM port
     global sipperPump
     S.COM_sipperPump = 'COM4';

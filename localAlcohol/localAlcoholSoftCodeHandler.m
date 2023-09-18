@@ -5,11 +5,14 @@ function localAlcoholSoftCodeHandler(SoftCodeID)
 
 global microInjectionPump
 global sipperPump
+global isEphysRig
     
 if SoftCodeID == 2 % Trigger the sipper pump
     fwrite(sipperPump, char([114 117 110 13 10]));
 elseif SoftCodeID == 3 % Trigger the microinjection pump
-    fwrite(microInjectionPump, char([114 117 110 13 10]));    
+    if isEphysRig
+        fwrite(microInjectionPump, char([114 117 110 13 10]));  
+    end
 else
     error('Unknown soft code.')
 end
